@@ -2,6 +2,7 @@ import * as http from 'http';
 import {IncomingMessage, ServerResponse} from 'http';
 import * as fs from 'fs';
 import * as p from 'path';
+import * as url from 'url';
 
 const server = http.createServer();
 const publicDir = p.resolve(__dirname, 'public');
@@ -10,8 +11,10 @@ server.on('request', (request: IncomingMessage, response: ServerResponse) => {
   console.log('request.method', request.method);
   console.log('request.url:', request.url);
   console.log('request.headers', request.headers);
-  const {method, url, headers} = request;
-  switch (url) {
+  const {method, url: path, headers} = request;
+  const {pathname, search} = url.parse(path)
+  console.log(pathname, search);
+  switch (pathname) {
     case '/index.html':
       response.setHeader('Content-Type', 'text/html; charset=utf-8')
       fs.readFile(p.resolve(publicDir, 'index.html'), (error, data) => {
@@ -33,6 +36,9 @@ server.on('request', (request: IncomingMessage, response: ServerResponse) => {
         response.end(data.toString());
       });
       break;
+    default:
+      response.statusCode = 404;
+      response.end()
   }
 });
 
